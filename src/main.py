@@ -66,12 +66,17 @@ class Enemy(pygame.sprite.Sprite):
         self.speed = random.randint(SPEED_MIN, SPEED_MAX)
 
     def update(self, pressed_keys):
-        self.rect.move_ip(-self.speed, 0)
-        if pressed_keys[K_UP]:
-            self.rect.move_ip(0, -5)
-        if pressed_keys[K_DOWN]:
-            self.rect.move_ip(0, 5)
+        if pressed_keys is None:
+            # Normal movement when not in superposition
+            self.rect.move_ip(-self.speed, 0)
+        else:
+            # Movement based on arrow keys when in superposition
+            if pressed_keys[K_UP]:
+                self.rect.move_ip(0, -5)
+            if pressed_keys[K_DOWN]:
+                self.rect.move_ip(0, 5)
         
+        # Border wrapping logic remains the same
         if self.rect.top < 0:
             self.rect.bottom = SCREEN_HEIGHT
         elif self.rect.bottom > SCREEN_HEIGHT:
@@ -148,17 +153,18 @@ while running:
             enemies.add(new_enemy)
             all_sprites.add(new_enemy)
 
-    pressed_keys = pygame.key.get_pressed()
-    if pressed_keys[K_ESCAPE]:
-        running = False
 
-    # Update player position if not in superposition
+    pressed_keys = pygame.key.get_pressed()
+
     if not in_superposition:
         player.update(pressed_keys)
-    
-    # Update enemy positions
-    for enemy in enemies:
-        enemy.update(pressed_keys)
+        # Enemies should move automatically (as they do now)
+        for enemy in enemies:
+            enemy.update(None)  # Pass None to indicate no key presses
+    else:
+        # In superposition, only move enemies based on arrow keys
+        for enemy in enemies:
+            enemy.update(pressed_keys)
 
     # Draw game elements
     screen.fill((0, 0, 0))
