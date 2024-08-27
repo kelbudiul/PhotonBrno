@@ -1,0 +1,4 @@
+1: No operator applied, game in classic mode, collision with alien ship lead to game over. (True)
+2: After applying NOT operator, a photonic ship jumps into the other screen with the same position. (True) 
+3: Ship cannot cross separation line. (True)
+4: After applying HADAMARD operator, the photonic ship enters into a superpostion: Two photonic ships appear at the same positions of both screen. (True)

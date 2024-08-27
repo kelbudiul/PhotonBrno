@@ -16,6 +16,13 @@ CREATING_ENEMY_TIME_INTERVAL = 250
 SPEED_MIN = 5
 SPEED_MAX = 10
 
+
+QUANTUM_CHECK_INTERVAL = 30  # Check every 30 frames (about 1 second at 30 FPS)
+NOT_PROBABILITY = 2 / 301
+HADAMARD_PROBABILITY = 1 / 301
+
+frame_count = 0
+
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super(Player, self).__init__()
@@ -131,6 +138,7 @@ def measure():
     in_superposition = False
     message = "Measurement applied! Superposition collapsed."
 
+# Main game loop
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -144,38 +152,59 @@ while running:
     if pressed_keys[K_ESCAPE]:
         running = False
 
+    # Update player position if not in superposition
     if not in_superposition:
         player.update(pressed_keys)
     
+    # Update enemy positions
     for enemy in enemies:
         enemy.update(pressed_keys)
 
+    # Draw game elements
     screen.fill((0, 0, 0))
     pygame.draw.line(screen, (0, 255, 0), (0, HALF_HEIGHT), (SCREEN_WIDTH, HALF_HEIGHT))
 
     for entity in all_sprites:
         screen.blit(entity.surf, entity.rect)
 
+    # Check for collisions
     if not in_superposition:
         if pygame.sprite.spritecollideany(player, enemies):
             player.kill()
             message = "Game Over :("
             running = False
     else:
+        # Check collisions when in superposition
         collided_enemies = pygame.sprite.spritecollide(player, enemies, False) + pygame.sprite.spritecollide(twin_player, enemies, False)
         if collided_enemies:
+            # Store original positions before measurement
+            original_player_pos = player.rect.copy()
+            original_twin_pos = twin_player.rect.copy()
+            # Perform measurement (collapse superposition)
             measure()
-            if pygame.sprite.spritecollideany(player, collided_enemies):
-                player.kill()
-                message = "Game Over :("
-                running = False
-
-    quantum_event = random.randint(0, 300)
-    if quantum_event == 100 or quantum_event == 200:
-        if not in_superposition:
-            apply_not_operator()
-    elif quantum_event == 150:
+            # Check if the survived player is in the same position as any collided enemy
+            for enemy in collided_enemies:
+                if (player.rect.colliderect(enemy.rect) or 
+                    player.rect == original_player_pos or 
+                    player.rect == original_twin_pos):
+                    player.kill()
+                    message = "Game Over :("
+                    running = False
+                    break
+            # If no collision after measurement, continue as single classical ship
+    
+    # The randomization occurs every frame, which at 30 FPS means 
+    # about 30 chances per second to apply an operator. 
+    # This might lead to more frequent operator applications 
+    # than intended.
+    frame_count += 1
+    if frame_count >= QUANTUM_CHECK_INTERVAL:
+        frame_count = 0
+    if random.random() < NOT_PROBABILITY:
+        apply_not_operator()
+    elif random.random() < HADAMARD_PROBABILITY:
         apply_hadamard_operator()
+
 
     if message:
         font = pygame.font.SysFont('Comic Sans MS', 28)
@@ -189,6 +218,7 @@ while running:
     pygame.display.flip()
     clock.tick(30)
 
+# Display final message before quitting
 if message:
     time.sleep(2)
 
