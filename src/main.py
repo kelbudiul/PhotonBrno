@@ -135,9 +135,11 @@ def apply_hadamard_operator():
         message = "HADAMARD operator applied! Exiting superposition."
 
 def measure():
+    print("#")
     global player, twin_player, in_superposition, message
     if random.choice([True, False]):
         player, twin_player = twin_player, player
+    player.in_upper_screen = player.rect.top < HALF_HEIGHT
     all_sprites.remove(twin_player)
     twin_player = None
     in_superposition = False
@@ -148,7 +150,7 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == ADDENEMY:
+        elif event.type == ADDENEMY and not in_superposition:
             new_enemy = Enemy()
             enemies.add(new_enemy)
             all_sprites.add(new_enemy)
@@ -183,22 +185,27 @@ while running:
         # Check collisions when in superposition
         collided_enemies = pygame.sprite.spritecollide(player, enemies, False) + pygame.sprite.spritecollide(twin_player, enemies, False)
         if collided_enemies:
-            # Store original positions before measurement
-            original_player_pos = player.rect.copy()
-            original_twin_pos = twin_player.rect.copy()
             # Perform measurement (collapse superposition)
             measure()
-            # Check if the survived player is in the same position as any collided enemy
+            # Check if any collided enemy is in the same screen as the collapsed player
+            game_over = False
             for enemy in collided_enemies:
-                if (player.rect.colliderect(enemy.rect) or 
-                    player.rect == original_player_pos or 
-                    player.rect == original_twin_pos):
-                    player.kill()
-                    message = "Game Over :("
-                    running = False
+                if (player.in_upper_screen and enemy.rect.top < HALF_HEIGHT) or \
+                (not player.in_upper_screen and enemy.rect.top >= HALF_HEIGHT):
+                    game_over = True
                     break
-            # If no collision after measurement, continue as single classical ship
-    
+            
+            if game_over:
+                player.kill()
+                message = "Game Over :("
+                running = False
+                print(1)
+            else:
+                message = "Close call! Superposition collapsed, but you survived."
+            
+            # Remove the collided enemies
+            for enemy in collided_enemies:
+                enemy.kill()
     # The randomization occurs every frame, which at 30 FPS means 
     # about 30 chances per second to apply an operator. 
     # This might lead to more frequent operator applications 
@@ -206,7 +213,7 @@ while running:
     frame_count += 1
     if frame_count >= QUANTUM_CHECK_INTERVAL:
         frame_count = 0
-    if random.random() < NOT_PROBABILITY:
+    if not in_superposition and random.random() < NOT_PROBABILITY:
         apply_not_operator()
     elif random.random() < HADAMARD_PROBABILITY:
         apply_hadamard_operator()
@@ -226,6 +233,6 @@ while running:
 
 # Display final message before quitting
 if message:
-    time.sleep(2)
+    time.sleep(10)
 
 pygame.quit()
