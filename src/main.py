@@ -75,6 +75,10 @@ class Enemy(pygame.sprite.Sprite):
                 self.rect.move_ip(0, -5)
             if pressed_keys[K_DOWN]:
                 self.rect.move_ip(0, 5)
+            if pressed_keys[K_RIGHT]:
+                self.rect.move_ip(5, 0)
+            if pressed_keys[K_LEFT]:
+                self.rect.move_ip(-5, 0)
         
         # Border wrapping logic remains the same
         if self.rect.top < 0:
