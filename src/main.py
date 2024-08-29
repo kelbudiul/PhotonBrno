@@ -14,7 +14,7 @@ SCREEN_HEIGHT = 600
 HALF_HEIGHT = SCREEN_HEIGHT // 2
 CREATING_ENEMY_TIME_INTERVAL = 250
 SPEED_MIN = 5
-SPEED_MAX = 8
+SPEED_MAX = 10
 
 
 QUANTUM_CHECK_INTERVAL = 30  # Check every 30 frames (about 1 second at 30 FPS)
@@ -69,10 +69,7 @@ class Enemy(pygame.sprite.Sprite):
         # Always move forward (to the left)
         self.rect.move_ip(-self.speed, 0)
 
-        if pressed_keys is None:
-            # Normal movement when not in superposition
-            self.rect.move_ip(-self.speed, 0)
-        else:
+        if pressed_keys is not None:
             # Movement based on arrow keys when in superposition
             if pressed_keys[K_UP]:
                 self.rect.move_ip(0, -5)
@@ -142,7 +139,6 @@ def apply_hadamard_operator():
         message = "HADAMARD operator applied! Exiting superposition."
 
 def measure():
-    print("#")
     global player, twin_player, in_superposition, message
     if random.choice([True, False]):
         player, twin_player = twin_player, player
@@ -206,7 +202,6 @@ while running:
                 player.kill()
                 message = "Game Over :("
                 running = False
-                print(1)
             else:
                 message = "Close call! Superposition collapsed, but you survived."
             
