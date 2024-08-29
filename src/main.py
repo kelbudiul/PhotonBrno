@@ -14,7 +14,7 @@ SCREEN_HEIGHT = 600
 HALF_HEIGHT = SCREEN_HEIGHT // 2
 CREATING_ENEMY_TIME_INTERVAL = 250
 SPEED_MIN = 5
-SPEED_MAX = 10
+SPEED_MAX = 8
 
 
 QUANTUM_CHECK_INTERVAL = 30  # Check every 30 frames (about 1 second at 30 FPS)
@@ -66,6 +66,9 @@ class Enemy(pygame.sprite.Sprite):
         self.speed = random.randint(SPEED_MIN, SPEED_MAX)
 
     def update(self, pressed_keys):
+        # Always move forward (to the left)
+        self.rect.move_ip(-self.speed, 0)
+
         if pressed_keys is None:
             # Normal movement when not in superposition
             self.rect.move_ip(-self.speed, 0)
@@ -75,10 +78,10 @@ class Enemy(pygame.sprite.Sprite):
                 self.rect.move_ip(0, -5)
             if pressed_keys[K_DOWN]:
                 self.rect.move_ip(0, 5)
-            if pressed_keys[K_RIGHT]:
-                self.rect.move_ip(5, 0)
-            if pressed_keys[K_LEFT]:
-                self.rect.move_ip(-5, 0)
+            # if pressed_keys[K_RIGHT]:
+            #     self.rect.move_ip(5, 0)
+            # if pressed_keys[K_LEFT]:
+            #     self.rect.move_ip(-5, 0)
         
         # Border wrapping logic remains the same
         if self.rect.top < 0:
